@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.cctv3.BaijiaJiangtan.dao.ComplexQueryDAO">
+    <select id="selectSeriesesByTeacher" resultType="net.cctv3.BaijiaJiangtan.bean.SelectSeriesesByTeacher">
+        SELECT mySeries.id,
+               mySeries.title,
+               mySeries.capture,
+               mySeries.message,
+               mySeries.remark,
+               mySeries.debut,
+               mySeries.update_time,
+               COUNT(myChapter.id)     AS chapters,
+               SUM(myChapter.duration) AS durations
+        FROM series mySeries
+                 JOIN chapter myChapter ON mySeries.id = myChapter.series_id
+        WHERE mySeries.teacher_id = #{id}
+        GROUP BY mySeries.id
+    </select>
+    <select id="selectSearchChapters" resultType="net.cctv3.BaijiaJiangtan.bean.SelectSearchChapter">
+        SELECT mySeries.id                                                 AS seriesId,
+               myChapter.id                                                AS chapterId,
+               mySeries.capture                                            AS seriesCapture,
+               myChapter.capture                                           AS chapterCapture,
+               mySeries.title                                              AS seriesTitle,
+               mySeries.message                                            AS seriesMessage,
+               myChapter.title                                             AS chapterTitle,
+               myChapter.message                                           AS chapterMessage,
+               myChapter.duration                                          AS duration,
+               myChapter.update_time,
+               myChapter.create_time,
+               COUNT(CASE WHEN myStatistics.intent = 'CLICK' THEN 1 END)   AS clickCount,
+               COUNT(CASE WHEN myStatistics.intent = 'COLLECT' THEN 1 END) AS collectCount,
+               COUNT(CASE WHEN myStatistics.intent = 'LIKE' THEN 1 END)    AS likeCount
+        FROM chapter myChapter
+                 LEFT JOIN series mySeries ON myChapter.series_id = mySeries.id
+                 LEFT JOIN statistics myStatistics ON myStatistics.battered_id = mySeries.id
+        WHERE myChapter.title LIKE CONCAT('%', #{keywords}, '%')
+           OR myChapter.message LIKE CONCAT('%', #{keywords}, '%')
+        GROUP BY myChapter.id LIMIT #{m}, #{n};
+    </select>
+    <select id="selectSearchSerieses" resultType="net.cctv3.BaijiaJiangtan.bean.SelectSearchSeries">
+        select mySeries.id,
+               mySeries.title,
+               mySeries.message,
+               mySeries.capture,
+               mySeries.update_time,
+               myTeacher.name,
+               myTeacher.avatar,
+               COUNT(myChapter.id)                                         AS chapters,
+               SUM(myChapter.duration)                                     AS durations,
+               COUNT(CASE WHEN myStatistics.intent = 'CLICK' THEN 1 END)   as clickCount,
+               COUNT(CASE WHEN myStatistics.intent = 'COLLECT' THEN 1 END) as collectCount,
+               COUNT(CASE WHEN myStatistics.intent = 'LIKE' THEN 1 END)    as likeCount
+        from series mySeries
+                 left join teacher myTeacher on mySeries.teacher_id = myTeacher.id
+                 left join chapter myChapter on myChapter.series_id = mySeries.id
+                 left join statistics myStatistics on myStatistics.battered_id = mySeries.id
+        where mySeries.title LIKE CONCAT('%', #{keywords}, '%')
+           or mySeries.message LIKE CONCAT('%', #{keywords}, '%')
+        group by mySeries.id
+            LIMIT #{m}, #{n};
+    </select>
+    <select id="selectSearchTeachers" resultType="net.cctv3.BaijiaJiangtan.bean.SelectSearchTeacher">
+        select myTeacher.id,
+               myTeacher.name,
+               myTeacher.avatar,
+               myTeacher.title,
+               myTeacher.message,
+               myTeacher.status,
+               COUNT(CASE WHEN myStatistics.intent = 'CLICK' THEN 1 END)   as clickCount,
+               COUNT(CASE WHEN myStatistics.intent = 'COLLECT' THEN 1 END) as collectCount,
+               COUNT(CASE WHEN myStatistics.intent = 'LIKE' THEN 1 END)    as likeCount
+        from teacher myTeacher
+                 left join statistics myStatistics on myStatistics.battered_id = myTeacher.id
+        where myTeacher.name LIKE CONCAT('%', #{keywords}, '%')
+           or myTeacher.title LIKE CONCAT('%', #{keywords}, '%')
+           or myTeacher.message LIKE CONCAT('%', #{keywords}, '%')
+        group by myTeacher.id LIMIT #{m}, #{n};
+    </select>
+    <select id="selectTeachersAndCounts" resultType="net.cctv3.BaijiaJiangtan.bean.SelectTeacherAndCount">
+        select myTeacher.id,
+               myTeacher.name,
+               myTeacher.avatar,
+               myTeacher.title,
+               myTeacher.message,
+               COUNT(CASE WHEN myStatistics.intent = 'CLICK' THEN 1 END) as clickCount,
+               COUNT(DISTINCT myChapter.series_id)                       as series,
+               sum(myChapter.duration)                                   as durations,
+               count(myChapter.id)                                       as chapters,
+               myTeacher.status
+        from teacher myTeacher
+                 left join statistics myStatistics on myStatistics.battered_id = myTeacher.id
+                 left join series mySeries on mySeries.teacher_id = myTeacher.id
+                 left join chapter myChapter on myChapter.series_id = mySeries.id
+        group by myTeacher.id
+        order by clickCount desc, durations desc LIMIT #{m}, #{n};
+    </select>
+</mapper>
