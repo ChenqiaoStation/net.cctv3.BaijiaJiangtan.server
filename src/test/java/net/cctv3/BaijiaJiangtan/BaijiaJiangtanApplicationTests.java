@@ -32,7 +32,7 @@ class BaijiaJiangtanApplicationTests {
         // tree(new File("/Users/net.cctv3.i/net.cctv3.BaijiaJiangtan/service"), 0);
         // calcDaikuan();
         // imageScaler();
-        // gitlabChats();
+        gitlabChats();
     }
 
 private int countCommitsInSomeMonth(List<String> datas, String month, String regexp) {
@@ -87,8 +87,8 @@ private int countCommitsInSomeMonth(List<String> datas, String month, String reg
             }
             List<String> months = new ArrayList<>();
             System.out.println(datas.size());
-            LocalDate startDate = LocalDate.of(2020, 11, 1);
-            LocalDate endDate = LocalDate.of(2023, 7, 1);
+            LocalDate startDate = LocalDate.of(2023, 1, 1);
+            LocalDate endDate = LocalDate.of(2023, 8, 1);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年M月");
             while (startDate.isBefore(endDate)) {
                 // System.out.println(startDate.format(formatter));
@@ -109,6 +109,7 @@ private int countCommitsInSomeMonth(List<String> datas, String month, String reg
                 wuZhenwei[i] = countCommitsInSomeMonth(datas, months.get(i), ".*(zhenwei|wzw).*");
                 niuhao[i] = countCommitsInSomeMonth(datas, months.get(i), ".*(niuhao).*");
                 daishuo[i] = countCommitsInSomeMonth(datas, months.get(i), ".*(dai|shuo).*");
+                menxing[i] = countCommitsInSomeMonth(datas, months.get(i), ".*(xmx).*");
             }
             stationChenqoo = recountDatas(stationChenqoo);
             liuChang = recountDatas(liuChang);
@@ -116,13 +117,14 @@ private int countCommitsInSomeMonth(List<String> datas, String month, String reg
             wuZhenwei = recountDatas(wuZhenwei);
             niuhao = recountDatas(niuhao);
             daishuo = recountDatas(daishuo);
+            menxing = recountDatas(menxing);
 
             logUtils.log("Structured Datas: ", new Object[]{stationChenqoo, liuChang, tongYuhu, wuZhenwei, niuhao
                     , daishuo});
             File excel = new File("/Users/net.cctv3.i/net.cctv3.BaijiaJiangtan/caches/Commit.txt");
             FileWriter writer = new FileWriter(excel);
-            String names[] = new String[]{"Station Chenqoo", "Liuchang", "Tongyuhu", "Wuzhenwei", "Niuhao", "Daishuo"};
-            int values[][] = new int[][]{stationChenqoo, liuChang, tongYuhu, wuZhenwei, niuhao, daishuo};
+            String names[] = new String[]{"Station Chenqoo", "Liuchang", "Tongyuhu", "Wuzhenwei", "Niuhao", "Daishuo", "Xumengxing"};
+            int values[][] = new int[][]{stationChenqoo, liuChang, tongYuhu, wuZhenwei, niuhao, daishuo, menxing};
             writer.append(datas2String("时间/童鞋", months) + "\r\n");
             for (int i = 0; i < names.length; i++) {
                 writer.append(datas2String(names[i], values[i]) + "\r\n");
